@@ -43,7 +43,7 @@ const Login = () => {
     };
 
     const loginHandler = async () => {
-        if (!data.role || !data.email || !data.password) {
+        if (!data.email || !data.password) {
             toast.warning("please fill all the sections..");
         } else {
             try {

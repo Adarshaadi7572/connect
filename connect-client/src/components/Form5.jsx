@@ -2,17 +2,24 @@ import React, { useState } from 'react';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { IconButton } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
+import axios from 'axios';
+import {toast} from 'react-toastify';
+import {useDispatch} from 'react-redux';
+import { ref } from './features/user/refreshSlice';
+import Spinner from './Spinner';
 const Form5 = () => {
   const [skill, setSkill] = useState('');
   const [skills, setSkills] = useState([]);
-
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const handleAddSkill = () => {
     if (skill.trim()) {
       setSkills([...skills, skill]);
+      
       setSkill('');
     }
   };
-
+  const userData = JSON.parse(localStorage.getItem("userData"));
   const handleRemoveSkill = (index) => {
     const updatedSkills = skills.filter((_, i) => i !== index);
     setSkills(updatedSkills);
@@ -21,11 +28,45 @@ const Form5 = () => {
   const previosRouteHandler = () =>{
         navigate(-1);
   }
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Skills:', skills);
-  };
+    if (skills) {
+      
+      setLoading(true); // Start loading
 
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${userData.token}`,
+          },
+          withCredentials: true,
+        };
+        // API call for sending OTP
+        console.log("skills", skills);
+        const response = await axios.put(`http://localhost:3000/api/v1/skills/${userData.user._id}`,{skills}, config);
+        console.log('user skills :', response);
+        toast.success('skills updated successfully');
+        dispatch(ref());
+        setLoading(false); 
+        navigate(-1)// Stop loading after response
+       
+      } catch (error) {
+        setLoading(false); // Stop loading if there is an error
+        console.log('skills updation failure', error);
+        if (error.response) {
+          console.error('Response data', error.response.data);
+          console.error('Response status', error.response.status);
+        }
+      }
+    } else {
+      // Toast or error message for validation failure
+      alert("Please fill all fields correctly...");
+      console.error("Please fill all fields correctly or ensure passwords match.");
+    }
+  };
+  if (loading) {
+    return <Spinner />;
+  }
   return (
     <div className='fixed top-0 left-0 w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center gap-2'>
     <form className="p-6 bg-gray-50 rounded-lg shadow-lg" onSubmit={handleSubmit}>

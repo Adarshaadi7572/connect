@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { IconButton } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
+import Spinner from './Spinner';
+import axios from 'axios';
+import {toast} from 'react-toastify';
+import {useDispatch} from 'react-redux';
+import { ref } from './features/user/refreshSlice';
 const Form1 = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -12,11 +17,13 @@ const Form1 = () => {
     zip: '',
     
   });
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const userData = JSON.parse(localStorage.getItem("userData"));
   const navigate = useNavigate();
   const previosRouteHandler = () =>{
-        navigate(-1);
+    navigate(-1);
   }
-  console.log(formData)
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -24,11 +31,47 @@ const Form1 = () => {
       [name]: type === 'checkbox' ? checked : value,
     });
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    console.log(formData);
+    if (
+      formData.name && formData.position && formData.organization && formData.city && formData.state && formData.zip 
+    ) {
+      
+      setLoading(true); // Start loading
+      console.log("userData token", userData.token);
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${userData.token}`,
+          },
+          withCredentials: true,
+        };
+        
+        // API call for sending OTP
+        console.log(formData)
+        
+        const response = await axios.put(`http://localhost:3000/api/v1/details/${userData.user._id}`,formData, config);
+        console.log('user profile :', response);
+        toast.success('profile successfully updated');
+        setLoading(false); 
+        dispatch(ref());
+        navigate(-1);
+        // Stop loading after response
+       
+      } catch (error) {
+        setLoading(false); // Stop loading if there is an error
+        console.log('Error in updating details', error);
+        if (error.response) {
+          console.error('Response data', error.response.data);
+          console.error('Response status', error.response.status);
+        }
+      }
+    } else {
+      // Toast or error message for validation failure
+      alert("Please fill all fields correctly...");
+      console.error("Please fill all fields correctly or ensure passwords match.");
+    }
   };
   const states = [
     'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
@@ -36,6 +79,9 @@ const Form1 = () => {
     'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 'Andaman and Nicobar Islands', 
     'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 'Lakshadweep', 'Delhi', 'Puducherry'
   ];
+  if (loading) {
+    return <Spinner />;
+  }
   return (
   <div className='fixed top-0 left-0 w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center gap-2 '>
     <form className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-lg shadow-lg" onSubmit={handleSubmit}>

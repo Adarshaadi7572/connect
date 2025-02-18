@@ -34,7 +34,7 @@ function App() {
                     <Route path='details' element={<Form1/>}/>
                     <Route path='education' element={<Form2/>}/>
                     <Route path='projectDetails' element={<Form3/>}/>
-                    <Route path='volunteer' element={<Form3/>}/>
+                    <Route path='volunteer' element={<Form4/>}/>
                     <Route path='skills' element={<Form5/>}/>
                  </Route>
                  <Route path='post/:id' element={<Post/>}/>

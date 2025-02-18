@@ -48,7 +48,8 @@ const SignUp = () => {
       [event.target.name]: event.target.value
     }));
   }
-
+  console.log(data);
+  
   const signupHandler = async (e) => {
     e.preventDefault();
     if (

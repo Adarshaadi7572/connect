@@ -1,19 +1,19 @@
 const mongoose = require("mongoose");
 const project = new mongoose.Schema({
-    user:{
-           type:mongoose.Schema.Types.ObjectId,
-           ref:'User'
-    },
-    name:{
+    
+    projectName:{
         type:String,
     },
-    duration:{
+    durationFrom:{
         type:Date,
     },
-    description:{
+    durationTo:{
+      type:Date,
+    },
+    projectDescription:{
         type:String,
     },
-    link:{
+    projectLink:{
         type:String,
     }
 });

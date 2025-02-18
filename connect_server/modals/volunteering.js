@@ -1,17 +1,16 @@
 const mongoose = require("mongoose");
 const volunteer = new mongoose.Schema({
-    user:{
-           type:mongoose.Schema.Types.ObjectId,
-           ref:'User'
-    },
     role:{
         type:String,
     },
     organization:{
         type:String,
     },
-    duration:{
-        type:String,
+    durationFrom:{
+        type:Date,
+    },
+    durationTo:{
+        type:Date,
     },
     field:{
         type:String,

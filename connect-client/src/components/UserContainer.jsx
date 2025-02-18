@@ -174,7 +174,7 @@ const UserContainer = () => {
 
                         <div className='Header flex justify-between ml-4 mt-4'>
                             <div className='flex gap-3'>
-                                <img src="" alt="" srcset="" className='w-14 h-14 bg-gray-200 rounded-full' />
+                                <img className='w-14 h-14 bg-gray-200 rounded-full' />
                                 <div>
                                     <p className='text-black font-semibold'>{userData.user.firstName} {userData.user.lastName}</p>
                                     <p className='text-sm '>full stack Developer || search analyst</p>
@@ -190,7 +190,7 @@ const UserContainer = () => {
                             Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quia maxime deserunt iste, quod sed odit maiores id unde consequuntur, consectetur expedita. Aliquam, id dolorum nemo veritatis exercitationem eius eum ex amet sint doloribus numquam, error tempore facilis, tenetur ea assumenda consectetur molestias quo fugit quibusdam earum! Dolor, minus nemo! Alias praesentium voluptatum pariatur, itaque fugit voluptatem deserunt tenetur sunt, dicta est ullam? Voluptatum dolores accusamus voluptas voluptate qui at architecto nostrum quidem harum cupiditate voluptates nam, commodi dolor vitae reprehenderit laborum ipsa. Quis iste molestias quisquam iure omnis nostrum mollitia quo delectus in deserunt, sed ipsa
                         </div>
                         <div className='post-image'>
-                            <img src="" alt="" srcset="" className='w-[90%] mt-4 ml-4 text-center bg-gray-600' />
+                            <img className='w-[90%] mt-4 ml-4 text-center bg-gray-600' />
                         </div>
 
                     </div>
@@ -223,7 +223,7 @@ const UserContainer = () => {
 
                         <div className='Header flex justify-between ml-4 mt-4'>
                             <div className='flex gap-3'>
-                                <img src="" alt="" srcset="" className='w-14 h-14 bg-gray-200 rounded-full' />
+                                <img className='w-14 h-14 bg-gray-200 rounded-full' />
                                 <div>
                                     <p className='text-black font-semibold'>{userData.user.firstName} {userData.user.lastName}</p>
                                     <p className='text-sm '>full stack Developer || search analyst</p>

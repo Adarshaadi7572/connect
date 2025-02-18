@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { IconButton } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
+import axios from 'axios';
+import {toast} from 'react-toastify';
+import {useDispatch} from 'react-redux';
+import { ref } from './features/user/refreshSlice';
+import Spinner from './Spinner';
+import { useSearchParams } from "react-router-dom";
 const Form4 = () => {
   const [formData, setFormData] = useState({
     role: '',
@@ -10,7 +16,11 @@ const Form4 = () => {
     durationTo: '',
     field: '',
   });
-
+    const [searchParams] = useSearchParams();
+    const VolunteerId = searchParams.get("volunteerId");
+  const userData = JSON.parse(localStorage.getItem("userData"));
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -22,11 +32,45 @@ const Form4 = () => {
   const previosRouteHandler = () =>{
         navigate(-1);
   }
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-  };
+    if (
+      formData.role && formData.organization && formData.durationFrom && formData.durationTo && formData.field 
+    ) {     
+      setLoading(true); // Start loading
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${userData.token}`,
+          },
+          withCredentials: true,
+        };
 
+        // API call for sending OTP
+        const response = await axios.put(`http://localhost:3000/api/v1/volunteer/${VolunteerId}`,formData, config);
+        console.log('volunteeer :', response);
+        toast.success('profile successfully updated');
+        setLoading(false); // Stop loading after response
+        dispatch(ref());
+        navigate(-1);
+       
+      } catch (error) {
+        setLoading(false); // Stop loading if there is an error
+        console.log('User Profile updation failed:', error);
+        if (error.response) {
+          console.error('Response data', error.response.data);
+          console.error('Response status', error.response.status);
+        }
+      }
+    } else {
+      // Toast or error message for validation failure
+      alert("Please fill all fields correctly...");
+      console.error("Please fill all fields correctly or ensure passwords match.");
+    }
+  };
+  if (loading) {
+    return <Spinner />;
+  }
   return (
     <div className='fixed top-0 left-0 w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center gap-2'>
     <form className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-lg shadow-lg" onSubmit={handleSubmit}>

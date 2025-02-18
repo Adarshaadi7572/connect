@@ -3,7 +3,7 @@ import Photo from '../assets/man-avatar.png';
 import Mmmut from '../assets/mmmut.jpg';
 import ModeEditIcon from '@mui/icons-material/ModeEdit';
 import AddIcon from '@mui/icons-material/Add';
-import { IconButton } from '@mui/material';
+import { IconButton, Skeleton } from '@mui/material';
 import Tech from '../assets/techsrijan.jpg';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -12,11 +12,23 @@ import { Cropper } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import Spinner from './Spinner';
 import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
+import axios from 'axios';
+import { ref } from './features/user/refreshSlice';
+import { useSelector, useDispatch } from 'react-redux';
+import DeleteIcon from '@mui/icons-material/Delete';
+import {toast} from 'react-toastify';
 const Profile = () => {
     const navigate = useNavigate();
     const path = useLocation();
+    const dispatch = useDispatch();
     // State for the profile photo
+    const refreshKey = useSelector((state) => state.refresh).refreshKey;
+    console.log("refreshKey", refreshKey);
     const userData = JSON.parse(localStorage.getItem("userData"));
+    const [userDetails, setUserData] = useState({});
+    console.log(userData);
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
 
 
@@ -54,7 +66,40 @@ const Profile = () => {
             setUploadedImage(null); // Close the cropping modal
         }
     };
+    useEffect(() => {
+        const fetchUserDetails = async () => {
+            try {
+                setLoading(true);
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${userData.token}`,
+                    },
+                    withCredentials: true,
+                };
+
+                const response = await axios.get(
+                    `http://localhost:3000/api/v1/getuser/${userData.user._id}`,
+                    config
+                );
+
+                console.log("userDetails", response.data);
+                setUserData(response.data.userDetails);
+            } catch (error) {
+                console.error("Error fetching user details:", error);
+                alert("Error in fetching User Details, Plese Login Again");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserDetails();
+    }, [refreshKey]);
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    }
     //for navigation to several forms 
+    console.log(loading);
     return (
 
         <div className='profile-container mt-20 gap-4'>
@@ -81,7 +126,7 @@ const Profile = () => {
                                         htmlFor="upload-photo"
                                         className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                                     >
-                                        <AddAPhotoIcon sx={{fontSize:"2rem"}}/> 
+                                        <AddAPhotoIcon sx={{ fontSize: "2rem" }} />
                                     </label>
                                     <input
                                         type="file"
@@ -95,103 +140,302 @@ const Profile = () => {
                         </div>
 
                         <div className='mt-20'>
-                            <h1 className='font-bold text-2xl text-center'>Adarsh Srivastava</h1>
-                            <p className='font-semibold text-center'>Full stack developer || Mern || DSA</p>
-                            <p className='text-center'>Gorakhpur,Uttar Pradesh, India</p>
+                            {
+                                loading ? (
+                                    <>
+                                        <Skeleton variant="text" sx={{ fontSize: '2rem', width: '20rem' }} />
+                                        <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                        <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                    </>
+                                ) :
+                                    (
+                                        <>
+                                            <h1 className='font-bold text-2xl text-center'>{userData.user.firstName} {userData.user.lastName}</h1>
+                                            <p className='font-semibold text-center'>{userDetails?.status?.position}</p>
+                                            <p className='text-center'>{userDetails?.status?.city} {userDetails?.status?.state} {userDetails?.status?.zip}</p>
+                                        </>
+                                    )
+                            }
                         </div>
 
                     </div>
                     <div className='mr-5'>
-                        <img src="" alt="" />
-                        <span className='text-lg font-semibold mr-3'>Madan Mohan Malaviya University of Technology</span>
-                        <IconButton onClick={() => navigate(`${path.pathname}/details`)}>
-                            <ModeEditIcon />
+                        {
+                            loading ? (
+                                <div className='flex items-center gap-2'>
+                                    <Skeleton variant="circular" width={45} height={45} />
+                                    <Skeleton variant="text" sx={{ fontSize: '3rem', width: '20rem' }} />
+                                </div>
 
-                        </IconButton>
+                            ) : (
+                                <>
+                                    <img src="" alt="" />
+                                    <span className='text-lg font-semibold mr-3'>{userDetails?.status?.organization}</span>
+                                    <IconButton onClick={() => navigate(`${path.pathname}/details`)}>
+                                        <ModeEditIcon />
+
+                                    </IconButton>
+                                </>
+                            )
+                        }
                     </div>
                 </div>
                 <div className='flex flex-col gap-5'>
 
-                    <div className='experience h-44 bg-blue-50 mx-4 rounded-lg'>
+                    <div className='eduaction min-h-16 bg-blue-50 mx-4 rounded-lg overflow-auto'>
                         <div className='flex justify-between mx-4 mt-3'>
-                            <h1 className='text-2xl font-bold '>Education</h1>
-                            <div className='flex gap-3'>
-                                <IconButton onClick={() => navigate(`${path.pathname}/education`)}>
-                                    <ModeEditIcon />
+                            <h1 className='text-2xl font-bold'>Education</h1>
+                            <IconButton className='h-10' onClick={() => navigate(`${path.pathname}/education`)}>
+                                <AddIcon />
 
-                                </IconButton>
-                                <IconButton onClick={() => navigate(`${path.pathname}/education`)}>
-                                    <AddIcon />
+                            </IconButton>
 
-                                </IconButton>
-                            </div>
                         </div>
-                        <div className='flex gap-6 mx-4 mt-3'>
-                            <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                                <img src={Mmmut} />
+                        {
+                            loading ? (
+                                <div className='flex mx-4 justify-between mt-4'>
 
-                            </div>
-                            <div>
-                                <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Madan Mohan Malaviya University of Technology</h1>
-                                <p className='text-md opacity-3'>Bachelors of Technology - BTech, Chemical Engineering</p>
-                                <p className='text-sm text-gray-500'>Jul 2021 - Jul 2025</p>
-                                <p>Grade: 7</p>
-                            </div>
-                        </div>
+                                    <div className='flex gap-6'>
+                                        <Skeleton variant="circular" sx={{ fontSize: '3rem', width: '4rem' }} />
+                                        <div>
+                                            <Skeleton variant="text" sx={{ fontSize: '2rem', width: '20rem' }} />
+                                            <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                            <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                        </div>
+                                    </div>
+
+                                    <div className='flex gap-3'>
+                                        <Skeleton variant="circular" sx={{ fontSize: '2rem', width: '2.5rem' }} />
+                                        <Skeleton variant="circular" sx={{ fontSize: '2rem', width: '2.5rem' }} />
+                                    </div>
+                                </div>
+                            ) : (
+
+                                userDetails?.education?.map((edu, index) => {
+                                    return (
+                                        <>
+
+                                            <div key={index} className='flex mx-4 justify-between mt-4'>
+
+                                                <div className='flex gap-6'>
+                                                    <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
+                                                        <img src={Mmmut} />
+
+                                                    </div>
+                                                    <div>
+                                                        <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>{edu?.collegeName}</h1>
+                                                        <p className='text-md opacity-3'>{edu?.degree}</p>
+                                                        <p className='text-sm text-gray-500'>{`${formatDate(edu?.from)} - ${formatDate(edu?.to)}`}</p>
+                                                        <p>{`Grade - ${edu?.grade}`}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className='flex gap-3'>
+                                                    <IconButton className='h-10' onClick={() => navigate(`${path.pathname}/education?educationId=${edu?._id}`)}>
+                                                        <ModeEditIcon />
+
+                                                    </IconButton>
+                                                    <IconButton className='h-10' onClick={async () => {
+                                                        try {
+                                                            setLoading(true);
+
+                                                            const config = {
+                                                                headers: {
+                                                                    Authorization: `Bearer ${userData.token}`,
+                                                                },
+                                                                withCredentials: true,
+                                                            };
+                                                            const response = await axios.delete(`http://localhost:3000/api/v1/education/${edu?._id}`, config);
+                                                            console.log('After Deletion:', response);
+                                                            toast.success('Successfully Deleted');
+                                                            setLoading(false);
+                                                            dispatch(ref());
+                                                        } catch (error) {
+                                                            setLoading(false);
+                                                             console.log(error);
+                                                             toast.warning("Failed");
+                                                        }
+                                                    }}>
+                                                        <DeleteIcon />
+
+                                                    </IconButton>
+
+                                                </div>
+                                            </div>
+                                            <hr className='font-bold mx-4 mt-1' />
+                                        </>
+                                    )
+                                })
+                            )
+                        }
                     </div>
-                    <div className='project h-52 bg-blue-50 mx-4 rounded-lg'>
-                        <div className='flex justify-between mx-4 mt-3'>
-                            <h1 className='text-2xl font-bold '>Projects</h1>
-                            <div className='flex gap-3'>
-                                <IconButton onClick={() => navigate(`${path.pathname}/projectDetails`)}>
-                                    <ModeEditIcon />
+                    <div className='project min-h-16 bg-blue-50 mx-4 rounded-lg'>
+                        <div className='flex justify-between mx-4 mt-3 items-center'>
+                            <h1 className='text-2xl font-bold'>Projects</h1>
+                            <IconButton className='h-10' onClick={() => navigate(`${path.pathname}/projectDetails`)}>
+                                <AddIcon />
 
-                                </IconButton>
-                                <IconButton onClick={() => navigate(`${path.pathname}/projectDetails`)}>
-                                    <AddIcon />
-
-                                </IconButton>
-                            </div>
-                        </div>
-                        <div className='flex mx-4 flex-col mt-4'>
-
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Chat Applicaiton</h1>
-                            <p className='text-md opacity-3'>May 2024 - Present</p>
-                            <p className='text-sm text-gray-500'>Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eveniet neque vitae inventore impedit voluptate, iste ex reiciendis consectetur atque quo officiis a incidunt accusantium officia quasi dicta hic tempore explicabo! Voluptates, id!</p>
-                            <p>Projet Link:</p>
+                            </IconButton>
 
                         </div>
+                        {
+                            loading ? (<div className='flex justify-between'>
+                                <div className='flex mx-4 flex-col mt-4'>
+
+                                    <Skeleton variant="text" sx={{ fontSize: '2rem', width: '20rem' }} />
+                                    <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                    <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                    <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                </div>
+                                <div className='flex justify-between mx-4 mt-3'>
+                                    <div className='flex gap-3'>
+                                        <Skeleton variant="circular" sx={{ fontSize: '2rem', width: '2.5rem' }} />
+                                        <Skeleton variant="circular" sx={{ fontSize: '2rem', width: '2.5rem' }} />
+                                    </div>
+                                </div>
+                            </div>) : (
+                                userDetails?.projects?.map((project, index) => {
+                                    return (
+                                        <>
+                                            <div key={index} className='flex justify-between'>
+                                                <div className='flex mx-4 flex-col my-3'>
+
+                                                    <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>{project.projectName}</h1>
+                                                    <p className='text-md opacity-3'>{`${formatDate(project?.durationFrom)} - ${formatDate(project?.durationTo)}`}</p>
+                                                    <p className='text-sm text-gray-500'>{project.projectDescription}</p>
+                                                    <p>{`Project Link:  ${project.projectLink}`}</p>
+
+                                                </div>
+                                                <div className='flex justify-between mx-4 mt-3'>
+                                                    <div className='flex'>
+                                                        <IconButton className='h-10' onClick={() => navigate(`${path.pathname}/projectDetails?projectId=${project?._id}`)}>
+                                                            <ModeEditIcon />
+
+                                                        </IconButton>
+                                                        <IconButton className='h-10' onClick={ async() => {
+                                                              try {
+                                                                setLoading(true);
+    
+                                                                const config = {
+                                                                    headers: {
+                                                                        Authorization: `Bearer ${userData.token}`,
+                                                                    },
+                                                                    withCredentials: true,
+                                                                };
+                                                                const response = await axios.delete(`http://localhost:3000/api/v1/project/${project?._id}`, config);
+                                                                console.log('After Deletion:', response);
+                                                                toast.success('Successfully Deleted');
+                                                                setLoading(false);
+                                                                dispatch(ref());
+                                                            } catch (error) {
+                                                                setLoading(false);
+                                                                 console.log(error);
+                                                                 toast.warning("Failed");
+                                                            }
+                                                        }}>
+                                                            <DeleteIcon />
+
+                                                        </IconButton>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <hr />
+                                        </>
+                                    )
+                                })
+                            )
+                        }
                     </div>
-                    <div className='Volunteering h-44 bg-blue-50 mx-4 rounded-lg'>
-
+                    <div className='Volunteering min-h-16 bg-blue-50 mx-4 rounded-lg'>
                         <div className='flex justify-between mx-4 mt-3'>
                             <h1 className='text-2xl font-bold '>Voluteering</h1>
-                            <div className='flex gap-3'>
-                                <IconButton onClick={() => navigate(`${path.pathname}/volunteer`)}>
-                                    <ModeEditIcon />
+                            <IconButton className='h-10' onClick={() => navigate(`${path.pathname}/volunteer`)}>
+                                <AddIcon />
 
-                                </IconButton>
-                                <IconButton onClick={() => navigate(`${path.pathname}/volunteer`)}>
-                                    <AddIcon />
+                            </IconButton>
 
-                                </IconButton>
-                            </div>
                         </div>
-                        <div className='flex gap-6 mx-4 mt-3'>
-                            <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                                <img src={Tech} />
+                        {
+                            loading ? (
+                                <div className=' flex justify-between'>
+                                    <div className='flex gap-6 mx-4 mt-3'>
+                                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
+                                            <Skeleton variant="circular" sx={{ fontSize: '3rem', width: '4rem' }} />
+                                        </div>
+                                        <div>
+                                            <Skeleton variant="text" sx={{ fontSize: '2rem', width: '20rem' }} />
+                                            <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                            <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                            <Skeleton variant="text" sx={{ fontSize: '1rem', width: '20rem' }} />
+                                        </div>
+                                    </div>
+                                    <div className='flex justify-between mx-4 mt-3'>
+                                        <div className='flex gap-3'>
+                                            <Skeleton variant="circular" sx={{ fontSize: '2rem', width: '2.5rem' }} />
+                                            <Skeleton variant="circular" sx={{ fontSize: '2rem', width: '2.5rem' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                userDetails?.volunteering?.map((vol, index) => {
+                                    return (
+                                        <>
+                                            <div key={index} className=' flex justify-between'>
+                                                <div className='flex gap-6 mx-4 my-3'>
+                                                    <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
+                                                        <img src={Tech} />
 
-                            </div>
-                            <div>
-                                <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Executive Member</h1>
-                                <p className='text-md opacity-3'>Techsrijan'2023</p>
-                                <p className='text-sm text-gray-500'>Jul 2021 - Jul 2025</p>
-                                <p className='text-sm text-gray-500'>Science and Tecnology</p>
-                            </div>
-                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Executive Member</h1>
+                                                        <p className='text-md opacity-3'>Techsrijan'2023</p>
+                                                        <p className='text-sm text-gray-500'>Jul 2021 - Jul 2025</p>
+                                                        <p className='text-sm text-gray-500'>Science and Tecnology</p>
+                                                    </div>
+                                                </div>
+                                                <div className='flex justify-between mx-4 mt-3'>
+                                                    <div className='flex gap-3'>
+                                                        <IconButton className='h-10' onClick={() => navigate(`${path.pathname}/volunteer?volunteerId=${vol?._id}`)}>
+                                                            <ModeEditIcon />
+
+                                                        </IconButton>
+                                                        <IconButton className='h-10' onClick={async () => {
+                                                             try {
+                                                                setLoading(true);
+    
+                                                                const config = {
+                                                                    headers: {
+                                                                        Authorization: `Bearer ${userData.token}`,
+                                                                    },
+                                                                    withCredentials: true,
+                                                                };
+                                                                const response = await axios.delete(`http://localhost:3000/api/v1/volunteer/${vol?._id}`, config);
+                                                                console.log('After Deletion:', response);
+                                                                toast.success('Successfully Deleted');
+                                                                setLoading(false);
+                                                                dispatch(ref());
+                                                            } catch (error) {
+                                                                setLoading(false);
+                                                                 console.log(error);
+                                                                 toast.warning("Failed");
+                                                            }
+                                                        }}>
+                                                            <DeleteIcon />
+
+                                                        </IconButton>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <hr />
+                                        </>
+                                    )
+                                })
+                            )
+                        }
                     </div>
 
-                    <div className='skills min-h-44 bg-blue-50 mx-4 rounded-lg mb-4'>
+                    <div className='skills min-h-16 bg-blue-50 mx-4 rounded-lg mb-4'>
                         <div className='flex justify-between mx-4 mt-3'>
                             <h1 className='text-2xl font-bold '>Skills</h1>
                             <div className='flex gap-3'>
@@ -206,105 +450,58 @@ const Profile = () => {
                             </div>
                         </div>
                         <div className='flex flex-col gap-6 mx-4 mt-3 mb-4'>
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>React.js</h1>
-                            <hr />
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Tailwind.js</h1>
-                            <hr />
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Express.js</h1>
-                            <hr />
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>MongoDB</h1>
-                            <hr />
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Socket.io</h1>
+                            {
+                                loading ? (
+                                    <Skeleton variant="text" sx={{ fontSize: '2rem', width: '20rem' }} />
+                                ) : (
+
+                                    userDetails?.skills?.map((skill, index) => {
+                                        return (
+                                            <>
+                                                <h1 key={index} className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>{skill}</h1>
+                                                <hr />
+                                            </>
+                                        )
+                                    })
+                                )
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-            <div className='flex-[0.3] bg-white rounded-lg'>
+            <div className='flex-[0.3] bg-white rounded-lg h-screen min-h-screen'>
                 <h1 className='ml-4 font-semibold text-xl mt-3 '>You may also know them</h1>
                 <p className='text-sm text-gray-500 ml-5 mb-3'>suugested to you</p>
                 <hr />
                 <div className='flex flex-col'>
-                    <div className='flex gap-4 mx-4 mt-2 items-center bg-blue-50 rounded-lg h-24 pl-3 relative'>
-                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                            <img src={Mmmut} />
+                    {
+                        loading ? (
+                            <div className='w-full h-screen flex justify-center items-center'>
+                                <Spinner />
+                            </div>
+                        ) : (
+                            userDetails?.connection?.map((member, index) => {
+                                return (
+                                    <div key={index} className='flex gap-4 mx-4 mt-2 items-center bg-blue-50 rounded-lg h-24 pl-3 relative'>
+                                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
+                                            <img src={Mmmut} />
 
-                        </div>
-                        <div>
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Abhishek Srivastava</h1>
-                            <p className='text-md opacity-3'>Full stack developer || Mern || DSA</p>
-                        </div>
-                        <div className='absolute right-2 top-2'>
-                            <IconButton>
-                                <PersonAddAltIcon />
+                                        </div>
+                                        <div>
+                                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Abhishek Srivastava</h1>
+                                            <p className='text-md opacity-3'>Full stack developer || Mern || DSA</p>
+                                        </div>
+                                        <div className='absolute right-2 top-2'>
+                                            <IconButton>
+                                                <PersonAddAltIcon />
 
-                            </IconButton>
-                        </div>
-                    </div>
-
-                    <div className='flex gap-4 mx-4 mt-2 items-center bg-blue-50 rounded-lg h-24 pl-3 relative'>
-                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                            <img src={Mmmut} />
-
-                        </div>
-                        <div>
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Abhishek Srivastava</h1>
-                            <p className='text-md opacity-3'>Full stack developer || Mern || DSA</p>
-                        </div>
-                        <div className='absolute right-2 top-2'>
-                            <IconButton>
-                                <PersonAddAltIcon />
-
-                            </IconButton>
-                        </div>
-                    </div>
-                    <div className='flex gap-4 mx-4 mt-2 items-center bg-blue-50 rounded-lg h-24 pl-3 relative'>
-                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                            <img src={Mmmut} />
-
-                        </div>
-                        <div>
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Abhishek Srivastava</h1>
-                            <p className='text-md opacity-3'>Full stack developer || Mern || DSA</p>
-                        </div>
-                        <div className='absolute right-2 top-2'>
-                            <IconButton>
-                                <PersonAddAltIcon />
-
-                            </IconButton>
-                        </div>
-                    </div>
-                    <div className='flex gap-4 mx-4 mt-2 items-center bg-blue-50 rounded-lg h-24 pl-3 relative'>
-                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                            <img src={Mmmut} />
-
-                        </div>
-                        <div>
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Abhishek Srivastava</h1>
-                            <p className='text-md opacity-3'>Full stack developer || Mern || DSA</p>
-                        </div>
-                        <div className='absolute right-2 top-2'>
-                            <IconButton>
-                                <PersonAddAltIcon />
-
-                            </IconButton>
-                        </div>
-                    </div>
-                    <div className='flex gap-4 mx-4 mt-2 items-center bg-blue-50 rounded-lg h-24 pl-3 relative'>
-                        <div className='w-[4rem] h-[4rem] rounded-full overflow-hidden'>
-                            <img src={Mmmut} />
-
-                        </div>
-                        <div>
-                            <h1 className='font-semibold hover:underline hover:text-blue-400 cursor-pointer'>Abhishek Srivastava</h1>
-                            <p className='text-md opacity-3'>Full stack developer || Mern || DSA</p>
-                        </div>
-                        <div className='absolute right-2 top-2'>
-                            <IconButton>
-                                <PersonAddAltIcon />
-
-                            </IconButton>
-                        </div>
-                    </div>
+                                            </IconButton>
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        )
+                    }
                 </div>
             </div>
             {uploadedImage && (

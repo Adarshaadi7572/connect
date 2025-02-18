@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
     picture:{
         type:String,
     },
+    status:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Status',
+    },
     post:[{
       type:mongoose.Schema.Types.ObjectId,
       ref:'Post'
@@ -43,21 +47,21 @@ const userSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:'User'
     }],
-    education:{
+    education:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Education'
-    },
-    project:{
+    }],
+    projects:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Project'
-    },
-    volunteering:{
+    }],
+    volunteering:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'Volunteer'
-    },
-    skills:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Skills'
-    }
+    }],
+    skills:[{
+        type:String,
+        
+    }]
 });
 module.exports = mongoose.model("User", userSchema);

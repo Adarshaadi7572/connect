@@ -1,16 +1,23 @@
 const mongoose = require("mongoose");
-const eduaction = new mongoose.Schema({
-    college:{
+const education = new mongoose.Schema({
+    degree:{
         type:String,
     },
-    course:{
+    collegeName:{
         type:String,
     },
-    date:{
+    majors:{
+        type:String,
+    },
+    from:{
+        type:Date,
+    },
+    to:{
         type:Date,
     },
     grade:{
         type:Number
     }
+
 });
 module.exports = mongoose.model('Education', education);

@@ -2,6 +2,12 @@ import React, { useState } from 'react';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { IconButton } from '@mui/material';
 import {useNavigate} from 'react-router-dom';
+import Spinner from './Spinner';
+import axios from 'axios';
+import {toast} from 'react-toastify';
+import {useDispatch} from 'react-redux';
+import { useSearchParams } from "react-router-dom";
+import { ref } from './features/user/refreshSlice';
 const Form2 = () => {
   const [formData, setFormData] = useState({
     degree: '',
@@ -11,7 +17,12 @@ const Form2 = () => {
     durationTo: '',
     grade: '',
   });
-
+  const [searchParams] = useSearchParams();
+  const EducationId = searchParams.get("educationId");
+  
+  const dispatch = useDispatch();
+   const [loading, setLoading] = useState(false);
+   const userData = JSON.parse(localStorage.getItem("userData"));
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -19,15 +30,50 @@ const Form2 = () => {
       [name]: type === 'checkbox' ? checked : value,
     });
   };
+  console.log(formData);
   const navigate = useNavigate();
   const previosRouteHandler = () =>{
         navigate(-1);
   }
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
-  };
+    if (
+      formData.degree && formData.collegeName && formData.degreeWithMajors && formData.durationFrom && formData.durationTo && formData.grade 
+    ) {
+      
+     setLoading(true); // Start loading
+      try {
+        const config = {
+          headers: {
+            Authorization: `Bearer ${userData.token}`,
+          },
+          withCredentials: true,
+        };
 
+       
+        const response = await axios.put(`http://localhost:3000/api/v1/education/${EducationId}`,formData, config);
+        console.log('user profile :', response);
+        toast.success('profile successfully updated');
+        setLoading(false); 
+        dispatch(ref());
+        navigate(-1);
+      } catch (error) {
+        setLoading(false); 
+        console.log('Error in email verification:', error);
+        if (error.response) {
+          console.error('Response data', error.response.data);
+          console.error('Response status', error.response.status);
+        }
+      }
+    } else {
+    
+      alert("Please fill all fields correctly...");
+      console.error("Please fill all fields correctly or ensure passwords match.");
+    }
+  };
+  if (loading) {
+    return <Spinner />;
+  }
   return (
     <div className='fixed top-0 left-0 w-full h-full z-50 bg-black bg-opacity-50 flex justify-center items-center gap-2'>
     <form className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-lg shadow-lg" onSubmit={handleSubmit}>
